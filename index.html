@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -18,22 +18,24 @@ body{
   font-family:'EB Garamond',serif;font-size:17px;
   min-height:100vh;overflow-x:hidden;position:relative;
 }
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background-color: #07090f; /* Fondo negro profundo */
-  background-image: radial-gradient(1.5px 1.5px at 100px 100px, #ffffff, transparent);
-  background-size: 200px 200px; /* ¡ESTO ES LO QUE FALTABA! */
-  box-shadow: 
-    15vw 12vh 1.2px #fff, 35vw 25vh 0.8px #fff, 62vw 8vh 1.1px #fff, 88vw 15vh 0.5px #fff,
-    5vw 45vh 1.2px #fff, 24vw 58vh 0.8px #fff, 47vw 42vh 1.1px #fff, 71vw 63vh 0.5px #fff,
-    94vw 38vh 1.2px #fff, 12vw 82vh 0.8px #fff, 38vw 91vh 1.1px #fff, 66vw 74vh 0.5px #fff,
-    82vw 88vh 1.2px #fff, 55vw 12vh 0.8px #fff, 29vw 5vh 1.1px #fff, 18vw 33vh 0.5px #fff,
-    77vw 45vh 1.2px #fff, 3vw 18vh 0.8px #fff, 44vw 67vh 1.1px #fff, 91vw 72vh 0.5px #fff;
-  opacity: 0.4;
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(1px 1px at 12% 18%,rgba(255,255,255,.45) 0%,transparent 100%),
+    radial-gradient(1px 1px at 43% 8%,rgba(255,255,255,.35) 0%,transparent 100%),
+    radial-gradient(1.5px 1.5px at 73% 22%,rgba(255,255,255,.55) 0%,transparent 100%),
+    radial-gradient(1px 1px at 88% 12%,rgba(255,255,255,.3) 0%,transparent 100%),
+    radial-gradient(1px 1px at 28% 58%,rgba(255,255,255,.4) 0%,transparent 100%),
+    radial-gradient(1px 1px at 62% 72%,rgba(255,255,255,.25) 0%,transparent 100%),
+    radial-gradient(1.5px 1.5px at 8%,82%,rgba(255,255,255,.5) 0%,transparent 100%),
+    radial-gradient(1px 1px at 83% 62%,rgba(255,255,255,.35) 0%,transparent 100%),
+    radial-gradient(1px 1px at 52% 42%,rgba(255,255,255,.2) 0%,transparent 100%),
+    radial-gradient(1px 1px at 22% 92%,rgba(255,255,255,.3) 0%,transparent 100%),
+    radial-gradient(1px 1px at 68% 52%,rgba(255,255,255,.45) 0%,transparent 100%),
+    radial-gradient(1px 1px at 4% 48%,rgba(255,255,255,.4) 0%,transparent 100%),
+    radial-gradient(1.5px 1.5px at 34% 14%,rgba(255,255,255,.6) 0%,transparent 100%),
+    radial-gradient(1px 1px at 57% 86%,rgba(255,255,255,.35) 0%,transparent 100%),
+    radial-gradient(1px 1px at 94% 38%,rgba(255,255,255,.3) 0%,transparent 100%);
 }
 .wrap{position:relative;z-index:1;max-width:660px;margin:0 auto;padding:20px 14px 52px}
 
@@ -329,7 +331,7 @@ function dibujaLuna(canvas, ilum, creciente) {
   ctx.clearRect(0, 0, w, h);
   const cx = w / 2, cy = h / 2, r = Math.min(w, h) / 2 - 1.5;
 
-  // 1. Efecto de resplandor (Glow)
+  // Glow
   const grd = ctx.createRadialGradient(cx, cy, r * 0.6, cx, cy, r * 1.5);
   grd.addColorStop(0, 'rgba(201,168,76,.18)');
   grd.addColorStop(1, 'rgba(0,0,0,0)');
@@ -343,56 +345,69 @@ function dibujaLuna(canvas, ilum, creciente) {
   ctx.arc(cx, cy, r, 0, Math.PI * 2);
   ctx.clip();
 
-  // 2. Fondo oscuro (Cuerpo de la Luna)
+  // Fondo oscuro
   ctx.fillStyle = '#090c1a';
   ctx.fillRect(0, 0, w, h);
 
-  // 3. Dibujo de la luz (Solo si la iluminación es mayor que 0)
-  if (ilum > 0) {
-    ctx.beginPath();
-    ctx.fillStyle = '#e5d098';
-    
-    if (ilum >= 0.98) {
-      // LUNA LLENA: Círculo completo
-      ctx.arc(cx, cy, r, 0, Math.PI * 2);
-      ctx.fill();
-    } else {
-      // OTRAS FASES: Medio círculo base
-      if (creciente) ctx.arc(cx, cy, r, -Math.PI / 2, Math.PI / 2, false);
-      else ctx.arc(cx, cy, r, -Math.PI / 2, Math.PI / 2, true);
-      ctx.fill();
+  const litDerecha = creciente;
 
-      // Elipse para ajustar a Creciente o Gibosa
-      const stretch = Math.abs(1 - 2 * ilum);
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.scale(creciente ? (ilum < 0.5 ? stretch : -stretch) : (ilum < 0.5 ? -stretch : stretch), 1);
-      ctx.beginPath();
-      ctx.arc(0, 0, r, -Math.PI / 2, Math.PI / 2, false);
-      ctx.fillStyle = ilum < 0.5 ? '#090c1a' : '#e5d098';
-      ctx.fill();
-      ctx.restore();
-    }
+  // Semicírculo iluminado
+  ctx.beginPath();
+  if (litDerecha) {
+    ctx.arc(cx, cy, r, -Math.PI / 2, Math.PI / 2, false);
+  } else {
+    ctx.arc(cx, cy, r, -Math.PI / 2, Math.PI / 2, true);
   }
+  ctx.closePath();
+  ctx.fillStyle = '#e5d098';
+  ctx.fill();
 
-  // 4. Textura (Cráteres) - Solo se ve sobre la parte iluminada
+  // Textura superficial (cráteres)
   ctx.globalAlpha = 0.07;
-  [[.3, .3, .12], [.6, .5, .08], [.25, .65, .06], [.7, .3, .05]].forEach(([fx, fy, fr]) => {
+  [[.3, .3, .12], [.6, .5, .08], [.25, .65, .06],
+   [.7, .3, .05], [.45, .7, .09], [.55, .2, .04]].forEach(([fx, fy, fr]) => {
     ctx.beginPath();
     ctx.arc(cx + (fx - 0.5) * 2 * r, cy + (fy - 0.5) * 2 * r, fr * r, 0, Math.PI * 2);
     ctx.fillStyle = '#4a3a10';
     ctx.fill();
   });
-  
+  ctx.globalAlpha = 1;
+
+  // Elipse terminador
+  const stretch = Math.abs(1 - 2 * ilum);
+  if (ilum > 0.02 && ilum < 0.98) {
+    ctx.save();
+    ctx.translate(cx, cy);
+    if (ilum < 0.49) {
+      // Creciente: elipse oscura sobre lado iluminado
+      ctx.scale(litDerecha ? stretch : -stretch, 1);
+      ctx.beginPath();
+      ctx.arc(0, 0, r, -Math.PI / 2, Math.PI / 2, false);
+      ctx.closePath();
+      ctx.fillStyle = '#090c1a';
+      ctx.fill();
+    } else if (ilum > 0.51) {
+      // Gibosa: elipse iluminada sobre lado oscuro
+      ctx.scale(litDerecha ? -stretch : stretch, 1);
+      ctx.beginPath();
+      ctx.arc(0, 0, r, -Math.PI / 2, Math.PI / 2, false);
+      ctx.closePath();
+      ctx.fillStyle = '#e5d098';
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
   ctx.restore();
 
-  // 5. Borde final
+  // Borde
   ctx.beginPath();
   ctx.arc(cx, cy, r, 0, Math.PI * 2);
   ctx.strokeStyle = 'rgba(180,160,80,.25)';
   ctx.lineWidth = .8;
   ctx.stroke();
 }
+
 // =====================================================
 // NOMBRES DE FASES Y UTILIDADES
 // =====================================================
