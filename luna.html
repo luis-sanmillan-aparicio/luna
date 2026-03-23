@@ -1,1 +1,589 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendario Lunar</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07090f;--surface:#0d1120;--surface2:#131928;--border:#1a2540;
+  --text:#b8cce0;--dim:#4a5a78;--gold:#c9a84c;--gold2:#7a5f28;
+  --silver:#7a9abf;--lit:#e5d098;--dark:#080b18;
+}
+html{height:100%}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'EB Garamond',serif;font-size:17px;
+  min-height:100vh;overflow-x:hidden;position:relative;
+}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(1px 1px at 12% 18%,rgba(255,255,255,.45) 0%,transparent 100%),
+    radial-gradient(1px 1px at 43% 8%,rgba(255,255,255,.35) 0%,transparent 100%),
+    radial-gradient(1.5px 1.5px at 73% 22%,rgba(255,255,255,.55) 0%,transparent 100%),
+    radial-gradient(1px 1px at 88% 12%,rgba(255,255,255,.3) 0%,transparent 100%),
+    radial-gradient(1px 1px at 28% 58%,rgba(255,255,255,.4) 0%,transparent 100%),
+    radial-gradient(1px 1px at 62% 72%,rgba(255,255,255,.25) 0%,transparent 100%),
+    radial-gradient(1.5px 1.5px at 8%,82%,rgba(255,255,255,.5) 0%,transparent 100%),
+    radial-gradient(1px 1px at 83% 62%,rgba(255,255,255,.35) 0%,transparent 100%),
+    radial-gradient(1px 1px at 52% 42%,rgba(255,255,255,.2) 0%,transparent 100%),
+    radial-gradient(1px 1px at 22% 92%,rgba(255,255,255,.3) 0%,transparent 100%),
+    radial-gradient(1px 1px at 68% 52%,rgba(255,255,255,.45) 0%,transparent 100%),
+    radial-gradient(1px 1px at 4% 48%,rgba(255,255,255,.4) 0%,transparent 100%),
+    radial-gradient(1.5px 1.5px at 34% 14%,rgba(255,255,255,.6) 0%,transparent 100%),
+    radial-gradient(1px 1px at 57% 86%,rgba(255,255,255,.35) 0%,transparent 100%),
+    radial-gradient(1px 1px at 94% 38%,rgba(255,255,255,.3) 0%,transparent 100%);
+}
+.wrap{position:relative;z-index:1;max-width:660px;margin:0 auto;padding:20px 14px 52px}
 
+/* LUNA ACTUAL */
+.luna-actual{
+  display:flex;align-items:center;gap:24px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:16px;padding:22px 26px;margin-bottom:28px;
+}
+.luna-actual canvas{display:block;border-radius:50%;flex-shrink:0}
+.luna-datos .nombre{
+  font-family:'Cinzel',serif;font-size:1.25em;
+  color:var(--gold);letter-spacing:.06em;margin-bottom:6px;
+}
+.luna-datos .linea{font-size:.9em;color:var(--dim);margin-bottom:3px}
+.luna-datos .ilum{font-size:1em;color:var(--silver);margin-top:4px}
+.luna-datos .ilum b{font-size:1.3em;color:var(--gold);font-style:normal}
+
+/* NAVEGACIÓN */
+.nav-mes{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:18px;
+}
+.nav-mes h2{
+  font-family:'Cinzel',serif;font-size:1.35em;
+  color:var(--gold);letter-spacing:.08em;
+}
+.btn-nav{
+  background:var(--surface);border:1px solid var(--border);
+  color:var(--silver);width:38px;height:38px;border-radius:50%;
+  cursor:pointer;font-size:1em;display:flex;align-items:center;
+  justify-content:center;transition:.2s;
+}
+.btn-nav:hover{background:var(--surface2);border-color:var(--gold2);color:var(--gold)}
+
+/* CALENDARIO */
+.cal{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;overflow:hidden;margin-bottom:22px;
+}
+.cab-semana{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--border)}
+.cab-semana span{
+  text-align:center;padding:9px 2px;
+  font-family:'Cinzel',serif;font-size:.62em;
+  letter-spacing:.1em;color:var(--dim);text-transform:uppercase;
+}
+.dias{display:grid;grid-template-columns:repeat(7,1fr)}
+.dia{
+  border:1px solid rgba(26,37,64,.4);
+  min-height:62px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;padding:5px 3px;
+}
+.dia.vacio{background:rgba(7,9,15,.5)}
+.dia.hoy .num{
+  background:var(--gold);color:#000;border-radius:50%;
+  width:26px;height:26px;display:flex;align-items:center;justify-content:center;
+  font-weight:600;
+}
+.num{font-size:.88em;color:var(--text);line-height:1}
+.dia.con-fase .num{display:none}
+.icono-fase{display:flex;flex-direction:column;align-items:center;gap:2px}
+.icono-fase canvas{border-radius:50%}
+.icono-fase .hora{font-size:.58em;color:var(--dim);font-family:'Cinzel',serif;letter-spacing:.02em}
+
+/* TABLA FASES */
+.tabla-fases{
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;
+}
+.tabla-fases h3{
+  font-family:'Cinzel',serif;font-size:.82em;
+  letter-spacing:.1em;color:var(--gold);text-transform:uppercase;
+  padding:13px 18px;border-bottom:1px solid var(--border);
+}
+.fila-fase{
+  display:flex;align-items:center;gap:14px;
+  padding:11px 18px;border-bottom:1px solid rgba(26,37,64,.4);
+}
+.fila-fase:last-child{border-bottom:none}
+.fila-fase canvas{border-radius:50%;flex-shrink:0}
+.fila-fase .info .n{font-family:'Cinzel',serif;font-size:.78em;color:var(--gold);letter-spacing:.04em}
+.fila-fase .info .f{font-size:.9em;color:var(--text)}
+.fila-fase .info .t{font-size:.82em;color:var(--dim)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="luna-actual">
+    <canvas id="cvActual" width="110" height="110"></canvas>
+    <div class="luna-datos">
+      <div class="nombre" id="nombreFase">—</div>
+      <div class="linea" id="fechaHora">—</div>
+      <div class="linea" id="edadLuna">—</div>
+      <div class="ilum">Iluminación: <b id="pctIlum">—</b></div>
+    </div>
+  </div>
+
+  <div class="nav-mes">
+    <button class="btn-nav" id="btnPrev">&#8592;</button>
+    <h2 id="titMes">—</h2>
+    <button class="btn-nav" id="btnNext">&#8594;</button>
+  </div>
+
+  <div class="cal">
+    <div class="cab-semana">
+      <span>Lun</span><span>Mar</span><span>Mié</span>
+      <span>Jue</span><span>Vie</span><span>Sáb</span><span>Dom</span>
+    </div>
+    <div class="dias" id="gridDias"></div>
+  </div>
+
+  <div class="tabla-fases">
+    <h3>Fases del mes · Hora UTC</h3>
+    <div id="listaFases"></div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// =====================================================
+// ALGORITMO DE JEAN MEEUS — mismas constantes que Luna.exe
+// Epoch 1900 · T = k / 1236.85
+// =====================================================
+
+const DEG = Math.PI / 180;
+const sind = d => Math.sin(((d % 360) + 360) % 360 * DEG);
+const cosd = d => Math.cos(((d % 360) + 360) % 360 * DEG);
+
+function calcJDE(k) {
+  const T  = k / 1236.85;
+  const T2 = T * T, T3 = T2 * T;
+
+  // Base JDE (constantes del exe: 2415020.759 y 29.53058868)
+  let J = 2415020.759
+        + 29.53058868 * k
+        + 0.0001178 * T2
+        - 0.000000155 * T3
+        + 0.00033 * sind(166.56 + 132.87 * T - 0.009173 * T2);
+
+  // Anomalías (constantes del exe)
+  const M  = 359.2242 + 29.10535608 * k - 0.0000333 * T2 - 0.00000347 * T3;
+  const Mp = 306.0253 + 385.8169181 * k + 0.0107306 * T2 + 0.00001236 * T3;
+  const F  = 21.2964  + 390.6705065 * k - 0.0016528 * T2 - 0.00000239 * T3;
+
+  // Corrección por excentricidad terrestre
+  const E  = 1 - 0.002516 * T - 0.0000074 * T2;
+  const E2 = E * E;
+
+  const fr = ((k % 1) + 1) % 1; // 0 = luna nueva, 0.5 = llena
+
+  if (fr < 0.01 || fr > 0.99) {
+    // Luna Nueva
+    J += -0.4068 * sind(Mp)
+       +  0.1721 * E  * sind(M)
+       +  0.0161 * sind(2 * Mp)
+       +  0.0104 * sind(2 * F)
+       +  0.0074 * E  * sind(Mp - M)
+       -  0.0051 * E  * sind(Mp + M)
+       +  0.0021 * E2 * sind(2 * M)
+       -  0.0010 * sind(Mp - 2 * F)
+       -  0.0005 * sind(Mp + 2 * F)
+       -  0.0004 * sind(3 * Mp)
+       +  0.0003 * E  * sind(M + 2 * F)
+       +  0.0002 * E  * sind(M - 2 * F);
+
+  } else if (fr > 0.49 && fr < 0.51) {
+    // Luna Llena
+    J += -0.4068 * sind(Mp)
+       +  0.1734 * E  * sind(M)
+       +  0.0161 * sind(2 * Mp)
+       +  0.0104 * sind(2 * F)
+       +  0.0074 * E  * sind(Mp - M)
+       -  0.0051 * E  * sind(Mp + M)
+       +  0.0021 * E2 * sind(2 * M)
+       -  0.0010 * sind(Mp - 2 * F)
+       -  0.0005 * sind(Mp + 2 * F)
+       -  0.0004 * sind(3 * Mp)
+       +  0.0003 * E  * sind(M + 2 * F)
+       +  0.0002 * E  * sind(M - 2 * F);
+
+  } else {
+    // Cuartos
+    J += -0.6280 * sind(Mp)
+       +  0.1721 * E  * sind(M)
+       -  0.0119 * E  * sind(Mp + M)
+       +  0.0089 * sind(2 * Mp)
+       +  0.0079 * sind(2 * F)
+       +  0.0047 * E  * sind(Mp - M)
+       +  0.0021 * E2 * sind(2 * M)
+       -  0.0010 * sind(Mp - 2 * F)
+       -  0.0005 * sind(Mp + 2 * F)
+       -  0.0004 * sind(3 * Mp)
+       +  0.0003 * E  * sind(M + 2 * F)
+       +  0.0002 * E  * sind(M - 2 * F);
+
+    const s = (fr < 0.5) ? 1 : -1;
+    J += s * (0.0028 - 0.0004 * E * cosd(M) + 0.0003 * cosd(Mp));
+  }
+
+  return J;
+}
+
+// JDE → fecha civil (gregoriana)
+function jdeFecha(JDE) {
+  let Z = Math.floor(JDE + 0.5);
+  const F = JDE + 0.5 - Z;
+  let A;
+  if (Z < 2299161) {
+    A = Z;
+  } else {
+    const al = Math.floor((Z - 1867216.25) / 36524.25);
+    A = Z + 1 + al - Math.floor(al / 4);
+  }
+  const B = A + 1524;
+  const C = Math.floor((B - 122.1) / 365.25);
+  const D = Math.floor(365.25 * C);
+  const E = Math.floor((B - D) / 30.6001);
+
+  const diaFrac = B - D - Math.floor(30.6001 * E) + F;
+  const mes     = E < 14 ? E - 1 : E - 13;
+  const anio    = mes > 2 ? C - 4716 : C - 4715;
+  const dia     = Math.floor(diaFrac);
+  const frac    = diaFrac - dia;
+  const h       = Math.floor(frac * 24);
+  const min     = Math.floor((frac * 24 - h) * 60);
+  const seg     = Math.round(((frac * 24 - h) * 60 - min) * 60);
+
+  return { anio, mes, dia, h, min, seg, JDE };
+}
+
+// Fecha → JDE (para día entero)
+function fechaJDE(anio, mes, dia) {
+  let Y = anio, M = mes;
+  if (M <= 2) { Y--; M += 12; }
+  const A = Math.floor(Y / 100);
+  const B = 2 - A + Math.floor(A / 4);
+  return Math.floor(365.25 * (Y + 4716)) + Math.floor(30.6001 * (M + 1)) + dia + B - 1524.5;
+}
+
+// Buscar todas las fases en un mes
+function fasesDelMes(anio, mes) {
+  const k0 = Math.round((anio - 1900 + (mes - 0.5) / 12) * 12.3685);
+  const res = [];
+  for (let dk = -3; dk <= 4; dk++) {
+    for (let f = 0; f < 4; f++) {
+      const k = k0 + dk + f * 0.25;
+      const J = calcJDE(k);
+      const d = jdeFecha(J);
+      if (d.anio === anio && d.mes === mes) {
+        res.push({ tipo: f, ...d });
+      }
+    }
+  }
+  return res.sort((a, b) => a.JDE - b.JDE);
+}
+
+// Iluminación a partir de JDE actual
+function iluminacion(jdeActual) {
+  // Buscar k aproximado
+  const kAprox = (jdeActual - 2415020.759) / 29.53058868;
+  const kNL = Math.round(kAprox);
+  const jdeNL = calcJDE(kNL);
+  const jdeNLSig = calcJDE(kNL + 1);
+  
+  let jdeRef, jdeSig;
+  if (jdeActual >= jdeNL) {
+    jdeRef = jdeNL; jdeSig = jdeNLSig;
+  } else {
+    jdeRef = calcJDE(kNL - 1); jdeSig = jdeNL;
+  }
+  
+  const p = 29.53058868;
+  const diasDesde = jdeActual - jdeRef;
+  const frac = diasDesde / p;
+  const angulo = frac * 360;
+  const ilum = (1 - Math.cos(angulo * DEG)) / 2;
+  const creciente = frac < 0.5;
+  return { ilum, creciente, diasDesde };
+}
+
+// ΔT aproximado (TT - UTC) en días
+function deltaT(anio) {
+  const t = anio - 2000;
+  return (62.92 + 0.32217 * t + 0.005589 * t * t) / 86400;
+}
+
+// =====================================================
+// DIBUJO DE LA LUNA
+// =====================================================
+function dibujaLuna(canvas, ilum, creciente) {
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  const cx = w / 2, cy = h / 2, r = Math.min(w, h) / 2 - 1.5;
+
+  // Glow
+  const grd = ctx.createRadialGradient(cx, cy, r * 0.6, cx, cy, r * 1.5);
+  grd.addColorStop(0, 'rgba(201,168,76,.18)');
+  grd.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.beginPath();
+  ctx.arc(cx, cy, r * 1.5, 0, Math.PI * 2);
+  ctx.fillStyle = grd;
+  ctx.fill();
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.clip();
+
+  // Fondo oscuro
+  ctx.fillStyle = '#090c1a';
+  ctx.fillRect(0, 0, w, h);
+
+  const litDerecha = creciente;
+
+  // Semicírculo iluminado
+  ctx.beginPath();
+  if (litDerecha) {
+    ctx.arc(cx, cy, r, -Math.PI / 2, Math.PI / 2, false);
+  } else {
+    ctx.arc(cx, cy, r, -Math.PI / 2, Math.PI / 2, true);
+  }
+  ctx.closePath();
+  ctx.fillStyle = '#e5d098';
+  ctx.fill();
+
+  // Textura superficial (cráteres)
+  ctx.globalAlpha = 0.07;
+  [[.3, .3, .12], [.6, .5, .08], [.25, .65, .06],
+   [.7, .3, .05], [.45, .7, .09], [.55, .2, .04]].forEach(([fx, fy, fr]) => {
+    ctx.beginPath();
+    ctx.arc(cx + (fx - 0.5) * 2 * r, cy + (fy - 0.5) * 2 * r, fr * r, 0, Math.PI * 2);
+    ctx.fillStyle = '#4a3a10';
+    ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+
+  // Elipse terminador
+  const stretch = Math.abs(1 - 2 * ilum);
+  if (ilum > 0.02 && ilum < 0.98) {
+    ctx.save();
+    ctx.translate(cx, cy);
+    if (ilum < 0.49) {
+      // Creciente: elipse oscura sobre lado iluminado
+      ctx.scale(litDerecha ? stretch : -stretch, 1);
+      ctx.beginPath();
+      ctx.arc(0, 0, r, -Math.PI / 2, Math.PI / 2, false);
+      ctx.closePath();
+      ctx.fillStyle = '#090c1a';
+      ctx.fill();
+    } else if (ilum > 0.51) {
+      // Gibosa: elipse iluminada sobre lado oscuro
+      ctx.scale(litDerecha ? -stretch : stretch, 1);
+      ctx.beginPath();
+      ctx.arc(0, 0, r, -Math.PI / 2, Math.PI / 2, false);
+      ctx.closePath();
+      ctx.fillStyle = '#e5d098';
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  ctx.restore();
+
+  // Borde
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(180,160,80,.25)';
+  ctx.lineWidth = .8;
+  ctx.stroke();
+}
+
+// =====================================================
+// NOMBRES DE FASES Y UTILIDADES
+// =====================================================
+const NOMBRES = ['Luna Nueva', 'Cuarto Creciente', 'Luna Llena', 'Cuarto Menguante'];
+const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+               'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+function pad2(n) { return String(n).padStart(2, '0'); }
+function horaStr(h, m, s) { return `${pad2(h)}:${pad2(m)}:${pad2(s)} UTC`; }
+
+function fechaStr(d) {
+  const dias = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  const jde = fechaJDE(d.anio, d.mes, d.dia);
+  const dow = ((Math.floor(jde + 1.5) % 7) + 7) % 7;
+  return `${dias[dow]}, ${d.dia} de ${MESES[d.mes - 1]} de ${d.anio}`;
+}
+
+// =====================================================
+// ESTADO Y RENDER
+// =====================================================
+const hoy = new Date();
+let mesVista = { anio: hoy.getUTCFullYear(), mes: hoy.getUTCMonth() + 1 };
+
+function jdeAhora() {
+  const y = hoy.getUTCFullYear(), m = hoy.getUTCMonth() + 1;
+  const d = hoy.getUTCDate() + (hoy.getUTCHours() + hoy.getUTCMinutes() / 60 + hoy.getUTCSeconds() / 3600) / 24;
+  return fechaJDE(y, m, d);
+}
+
+function renderLunaActual() {
+  const jde = jdeAhora() + deltaT(hoy.getUTCFullYear());
+  const { ilum, creciente, diasDesde } = iluminacion(jde);
+
+  const cv = document.getElementById('cvActual');
+  dibujaLuna(cv, ilum, creciente);
+
+  // Nombre de fase aproximado
+  let nombre;
+  const fa = diasDesde / 29.53058868;
+  if      (fa < 0.035 || fa > 0.965) nombre = 'Luna Nueva';
+  else if (fa < 0.215) nombre = 'Creciente Joven';
+  else if (fa < 0.285) nombre = 'Cuarto Creciente';
+  else if (fa < 0.465) nombre = 'Gibosa Creciente';
+  else if (fa < 0.535) nombre = 'Luna Llena';
+  else if (fa < 0.715) nombre = 'Gibosa Menguante';
+  else if (fa < 0.785) nombre = 'Cuarto Menguante';
+  else                 nombre = 'Creciente Menguante';
+
+  document.getElementById('nombreFase').textContent = nombre;
+  document.getElementById('fechaHora').textContent =
+    `${pad2(hoy.getUTCDate())} ${MESES[hoy.getUTCMonth()]} ${hoy.getUTCFullYear()} · ` +
+    `${pad2(hoy.getUTCHours())}:${pad2(hoy.getUTCMinutes())}:${pad2(hoy.getUTCSeconds())} UTC`;
+  document.getElementById('edadLuna').textContent =
+    `Edad: ${diasDesde.toFixed(2)} días desde luna nueva`;
+  document.getElementById('pctIlum').textContent = `${(ilum * 100).toFixed(1)} %`;
+}
+
+function renderCalendario() {
+  const { anio, mes } = mesVista;
+  document.getElementById('titMes').textContent = `${MESES[mes - 1]} ${anio}`;
+
+  const fases = fasesDelMes(anio, mes);
+  // Mapa día → fase
+  const mapa = {};
+  fases.forEach(f => {
+    if (!mapa[f.dia]) mapa[f.dia] = [];
+    mapa[f.dia].push(f);
+  });
+
+  // Primer día del mes (lunes=0)
+  const primerJde = fechaJDE(anio, mes, 1);
+  const primerDow = ((Math.floor(primerJde + 1.5) % 7) + 7) % 7; // 0=dom
+  const offset = primerDow === 0 ? 6 : primerDow - 1; // lunes primero
+  const diasEnMes = new Date(anio, mes, 0).getDate();
+
+  const hoyD = hoy.getUTCDate(), hoyM = hoy.getUTCMonth() + 1, hoyA = hoy.getUTCFullYear();
+  const esHoy = (d) => d === hoyD && mes === hoyM && anio === hoyA;
+
+  const grid = document.getElementById('gridDias');
+  grid.innerHTML = '';
+
+  // Celdas vacías iniciales
+  for (let i = 0; i < offset; i++) {
+    const c = document.createElement('div');
+    c.className = 'dia vacio';
+    grid.appendChild(c);
+  }
+
+  for (let d = 1; d <= diasEnMes; d++) {
+    const cel = document.createElement('div');
+    const hasFase = mapa[d] && mapa[d].length > 0;
+    cel.className = 'dia' + (hasFase ? ' con-fase' : '') + (esHoy(d) ? ' hoy' : '');
+
+    const num = document.createElement('div');
+    num.className = 'num';
+    num.textContent = d;
+    cel.appendChild(num);
+
+    if (hasFase) {
+      mapa[d].forEach(fase => {
+        const wrap = document.createElement('div');
+        wrap.className = 'icono-fase';
+
+        const cv = document.createElement('canvas');
+        cv.width = 34; cv.height = 34;
+        // Iluminación simbólica por tipo
+        const ilums = [0, 0.5, 1, 0.5];
+        const crecs  = [true, true, true, false];
+        dibujaLuna(cv, ilums[fase.tipo], crecs[fase.tipo]);
+        wrap.appendChild(cv);
+
+        const hr = document.createElement('div');
+        hr.className = 'hora';
+        hr.textContent = `${pad2(fase.h)}:${pad2(fase.min)}:${pad2(fase.seg)}`;
+        wrap.appendChild(hr);
+
+        cel.appendChild(wrap);
+      });
+    }
+
+    grid.appendChild(cel);
+  }
+}
+
+function renderTablaFases() {
+  const { anio, mes } = mesVista;
+  const fases = fasesDelMes(anio, mes);
+  const lista = document.getElementById('listaFases');
+  lista.innerHTML = '';
+
+  if (!fases.length) {
+    lista.innerHTML = '<div style="padding:14px 18px;color:var(--dim);font-style:italic">Sin lunaciones este mes</div>';
+    return;
+  }
+
+  fases.forEach(f => {
+    const fila = document.createElement('div');
+    fila.className = 'fila-fase';
+
+    const cv = document.createElement('canvas');
+    cv.width = 40; cv.height = 40;
+    const ilums = [0, 0.5, 1, 0.5];
+    const crecs  = [true, true, true, false];
+    dibujaLuna(cv, ilums[f.tipo], crecs[f.tipo]);
+    fila.appendChild(cv);
+
+    const info = document.createElement('div');
+    info.className = 'info';
+    info.innerHTML = `
+      <div class="n">${NOMBRES[f.tipo]}</div>
+      <div class="f">${fechaStr(f)}</div>
+      <div class="t">${horaStr(f.h, f.min, f.seg)}</div>
+    `;
+    fila.appendChild(info);
+    lista.appendChild(fila);
+  });
+}
+
+function render() {
+  renderLunaActual();
+  renderCalendario();
+  renderTablaFases();
+}
+
+document.getElementById('btnPrev').addEventListener('click', () => {
+  mesVista.mes--;
+  if (mesVista.mes < 1) { mesVista.mes = 12; mesVista.anio--; }
+  renderCalendario(); renderTablaFases();
+});
+document.getElementById('btnNext').addEventListener('click', () => {
+  mesVista.mes++;
+  if (mesVista.mes > 12) { mesVista.mes = 1; mesVista.anio++; }
+  renderCalendario(); renderTablaFases();
+});
+
+render();
+</script>
+</body>
+</html>
