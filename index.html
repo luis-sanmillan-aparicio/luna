@@ -18,24 +18,29 @@ body{
   font-family:'EB Garamond',serif;font-size:17px;
   min-height:100vh;overflow-x:hidden;position:relative;
 }
-body::before{
-  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
-  background:
-    radial-gradient(1px 1px at 12% 18%,rgba(255,255,255,.45) 0%,transparent 100%),
-    radial-gradient(1px 1px at 43% 8%,rgba(255,255,255,.35) 0%,transparent 100%),
-    radial-gradient(1.5px 1.5px at 73% 22%,rgba(255,255,255,.55) 0%,transparent 100%),
-    radial-gradient(1px 1px at 88% 12%,rgba(255,255,255,.3) 0%,transparent 100%),
-    radial-gradient(1px 1px at 28% 58%,rgba(255,255,255,.4) 0%,transparent 100%),
-    radial-gradient(1px 1px at 62% 72%,rgba(255,255,255,.25) 0%,transparent 100%),
-    radial-gradient(1.5px 1.5px at 8% 82%,rgba(255,255,255,.5) 0%,transparent 100%),
-    radial-gradient(1px 1px at 83% 62%,rgba(255,255,255,.35) 0%,transparent 100%),
-    radial-gradient(1px 1px at 52% 42%,rgba(255,255,255,.2) 0%,transparent 100%),
-    radial-gradient(1px 1px at 22% 92%,rgba(255,255,255,.3) 0%,transparent 100%),
-    radial-gradient(1px 1px at 68% 52%,rgba(255,255,255,.45) 0%,transparent 100%),
-    radial-gradient(1px 1px at 4% 48%,rgba(255,255,255,.4) 0%,transparent 100%),
-    radial-gradient(1.5px 1.5px at 34% 14%,rgba(255,255,255,.6) 0%,transparent 100%),
-    radial-gradient(1px 1px at 57% 86%,rgba(255,255,255,.35) 0%,transparent 100%),
-    radial-gradient(1px 1px at 94% 38%,rgba(255,255,255,.3) 0%,transparent 100%);
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: #07090f;
+  /* Capa 1: Estrellas diminutas (Fondo) */
+  background-image: radial-gradient(1px 1px at 20px 30px, #eee, rgba(0,0,0,0));
+  /* Clonamos el punto anterior cientos de veces con sombras */
+  box-shadow: 
+    24vw 15vh 1px #fff, 45vw 67vh 1px #fff, 12vw 88vh 0.5px #fff,
+    78vw 12vh 1px #fff, 92vw 45vh 1px #fff, 5vw 23vh 0.5px #fff,
+    33vw 91vh 1px #fff, 61vw 34vh 1px #fff, 88vw 76vh 0.5px #fff,
+    15vw 52vh 1px #fff, 54vw 10vh 1px #fff, 72vw 82vh 0.5px #fff,
+    41vw 28vh 1px #fff, 9vw 74vh 1px #fff, 66vw 59vh 0.5px #fff,
+    27vw 41vh 1px #fff, 82vw 95vh 1px #fff, 49vw 18vh 0.5px #fff,
+    95vw 27vh 1px #fff, 3vw 61vh 1px #fff, 58vw 49vh 0.5px #fff,
+    70vw 7vh 1px #fff, 21vw 84vh 1px #fff, 37vw 36vh 0.5px #fff,
+    85vw 55vh 1px #fff, 11vw 14vh 1px #fff, 63vw 93vh 0.5px #fff,
+    44vw 47vh 1px #fff, 2vw 39vh 1px #fff, 77vw 64vh 0.5px #fff,
+    51vw 79vh 1px #fff, 98vw 8vh 1px #fff, 19vw 25vh 0.5px #fff;
+  opacity: 0.6;
 }
 .wrap{position:relative;z-index:1;max-width:660px;margin:0 auto;padding:20px 14px 52px}
 
