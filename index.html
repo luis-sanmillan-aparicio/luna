@@ -26,14 +26,11 @@ body::before {
   z-index: 0;
   background-color: #07090f;
   background-image: 
-    /* --- CAPA 1: Brillo Máximo (Cercanas) --- */
     radial-gradient(1.5px 1.5px at 12.3% 18.7%, #fff 100%, transparent),
     radial-gradient(1.8px 1.8px at 43.1% 82.4%, #fff 100%, transparent),
     radial-gradient(1.5px 1.5px at 85.9% 35.2%, #fff 100%, transparent),
     radial-gradient(1.5px 1.5px at 25% 65%, #fff 100%, transparent),
     radial-gradient(1.7px 1.7px at 75% 15%, #fff 100%, transparent),
-
-    /* --- CAPA 2: Brillo Medio (Densidad x2 sobre la anterior) --- */
     radial-gradient(1.2px 1.2px at 15% 45%, rgba(255,255,255,0.5) 100%, transparent),
     radial-gradient(1.2px 1.2px at 65% 22%, rgba(255,255,255,0.5) 100%, transparent),
     radial-gradient(1.2px 1.2px at 88% 75%, rgba(255,255,255,0.5) 100%, transparent),
@@ -41,8 +38,6 @@ body::before {
     radial-gradient(1.2px 1.2px at 51% 10%, rgba(255,255,255,0.5) 100%, transparent),
     radial-gradient(1.2px 1.2px at 5% 20%, rgba(255,255,255,0.4) 100%, transparent),
     radial-gradient(1.2px 1.2px at 95% 40%, rgba(255,255,255,0.4) 100%, transparent),
-
-    /* --- CAPA 3: Polvo Estelar (Triple de densidad que la anterior) --- */
     radial-gradient(1px 1px at 5% 5%, rgba(255,255,255,0.15) 100%, transparent),
     radial-gradient(1px 1px at 25% 35%, rgba(255,255,255,0.1) 100%, transparent),
     radial-gradient(1px 1px at 45% 65%, rgba(255,255,255,0.15) 100%, transparent),
@@ -55,8 +50,6 @@ body::before {
     radial-gradient(1px 1px at 70% 30%, rgba(255,255,255,0.15) 100%, transparent),
     radial-gradient(1px 1px at 20% 50%, rgba(255,255,255,0.1) 100%, transparent),
     radial-gradient(1px 1px at 80% 60%, rgba(255,255,255,0.15) 100%, transparent);
-
-  /* Tamaños gigantes con números primos para evitar patrones */
   background-size: 797px 827px, 541px 593px, 311px 353px;
   opacity: 1;
 }
@@ -110,7 +103,9 @@ body::before {
   border:1px solid rgba(26,37,64,.4);
   min-height:62px;display:flex;flex-direction:column;
   align-items:center;justify-content:center;padding:5px 3px;
+  transition: background 0.3s;
 }
+.dia:hover:not(.vacio) { background: rgba(201,168,76, 0.1); }
 .dia.vacio{background:rgba(7,9,15,.5)}
 .dia.hoy .num{
   background:var(--gold);color:#000;border-radius:50%;
@@ -179,10 +174,8 @@ body::before {
 'use strict';
 
 // =====================================================
-// ALGORITMO DE JEAN MEEUS — mismas constantes que Luna.exe
-// Epoch 1900 · T = k / 1236.85
+// ALGORITMO DE JEAN MEEUS
 // =====================================================
-
 const DEG = Math.PI / 180;
 const sind = d => Math.sin(((d % 360) + 360) % 360 * DEG);
 const cosd = d => Math.cos(((d % 360) + 360) % 360 * DEG);
@@ -190,85 +183,30 @@ const cosd = d => Math.cos(((d % 360) + 360) % 360 * DEG);
 function calcJDE(k) {
   const T  = k / 1236.85;
   const T2 = T * T, T3 = T2 * T;
-
-  // Base JDE (constantes del exe: 2415020.759 y 29.53058868)
-  let J = 2415020.759
-        + 29.53058868 * k
-        + 0.0001178 * T2
-        - 0.000000155 * T3
-        + 0.00033 * sind(166.56 + 132.87 * T - 0.009173 * T2);
-
-  // Anomalías (constantes del exe)
+  let J = 2415020.759 + 29.53058868 * k + 0.0001178 * T2 - 0.000000155 * T3 + 0.00033 * sind(166.56 + 132.87 * T - 0.009173 * T2);
   const M  = 359.2242 + 29.10535608 * k - 0.0000333 * T2 - 0.00000347 * T3;
   const Mp = 306.0253 + 385.8169181 * k + 0.0107306 * T2 + 0.00001236 * T3;
   const F  = 21.2964  + 390.6705065 * k - 0.0016528 * T2 - 0.00000239 * T3;
-
-  // Corrección por excentricidad terrestre
   const E  = 1 - 0.002516 * T - 0.0000074 * T2;
   const E2 = E * E;
-
-  const fr = ((k % 1) + 1) % 1; // 0 = luna nueva, 0.5 = llena
-
+  const fr = ((k % 1) + 1) % 1;
   if (fr < 0.01 || fr > 0.99) {
-    // Luna Nueva
-    J += -0.4068 * sind(Mp)
-       +  0.1721 * E  * sind(M)
-       +  0.0161 * sind(2 * Mp)
-       +  0.0104 * sind(2 * F)
-       +  0.0074 * E  * sind(Mp - M)
-       -  0.0051 * E  * sind(Mp + M)
-       +  0.0021 * E2 * sind(2 * M)
-       -  0.0010 * sind(Mp - 2 * F)
-       -  0.0005 * sind(Mp + 2 * F)
-       -  0.0004 * sind(3 * Mp)
-       +  0.0003 * E  * sind(M + 2 * F)
-       +  0.0002 * E  * sind(M - 2 * F);
-
+    J += -0.4068 * sind(Mp) + 0.1721 * E * sind(M) + 0.0161 * sind(2 * Mp) + 0.0104 * sind(2 * F) + 0.0074 * E * sind(Mp - M) - 0.0051 * E * sind(Mp + M) + 0.0021 * E2 * sind(2 * M) - 0.0010 * sind(Mp - 2 * F) - 0.0005 * sind(Mp + 2 * F) - 0.0004 * sind(3 * Mp) + 0.0003 * E * sind(M + 2 * F) + 0.0002 * E * sind(M - 2 * F);
   } else if (fr > 0.49 && fr < 0.51) {
-    // Luna Llena
-    J += -0.4068 * sind(Mp)
-       +  0.1734 * E  * sind(M)
-       +  0.0161 * sind(2 * Mp)
-       +  0.0104 * sind(2 * F)
-       +  0.0074 * E  * sind(Mp - M)
-       -  0.0051 * E  * sind(Mp + M)
-       +  0.0021 * E2 * sind(2 * M)
-       -  0.0010 * sind(Mp - 2 * F)
-       -  0.0005 * sind(Mp + 2 * F)
-       -  0.0004 * sind(3 * Mp)
-       +  0.0003 * E  * sind(M + 2 * F)
-       +  0.0002 * E  * sind(M - 2 * F);
-
+    J += -0.4068 * sind(Mp) + 0.1734 * E * sind(M) + 0.0161 * sind(2 * Mp) + 0.0104 * sind(2 * F) + 0.0074 * E * sind(Mp - M) - 0.0051 * E * sind(Mp + M) + 0.0021 * E2 * sind(2 * M) - 0.0010 * sind(Mp - 2 * F) - 0.0005 * sind(Mp + 2 * F) - 0.0004 * sind(3 * Mp) + 0.0003 * E * sind(M + 2 * F) + 0.0002 * E * sind(M - 2 * F);
   } else {
-    // Cuartos
-    J += -0.6280 * sind(Mp)
-       +  0.1721 * E  * sind(M)
-       -  0.0119 * E  * sind(Mp + M)
-       +  0.0089 * sind(2 * Mp)
-       +  0.0079 * sind(2 * F)
-       +  0.0047 * E  * sind(Mp - M)
-       +  0.0021 * E2 * sind(2 * M)
-       -  0.0010 * sind(Mp - 2 * F)
-       -  0.0005 * sind(Mp + 2 * F)
-       -  0.0004 * sind(3 * Mp)
-       +  0.0003 * E  * sind(M + 2 * F)
-       +  0.0002 * E  * sind(M - 2 * F);
-
+    J += -0.6280 * sind(Mp) + 0.1721 * E * sind(M) - 0.0119 * E * sind(Mp + M) + 0.0089 * sind(2 * Mp) + 0.0079 * sind(2 * F) + 0.0047 * E * sind(Mp - M) + 0.0021 * E2 * sind(2 * M) - 0.0010 * sind(Mp - 2 * F) - 0.0005 * sind(Mp + 2 * F) - 0.0004 * sind(3 * Mp) + 0.0003 * E * sind(M + 2 * F) + 0.0002 * E * sind(M - 2 * F);
     const s = (fr < 0.5) ? 1 : -1;
     J += s * (0.0028 - 0.0004 * E * cosd(M) + 0.0003 * cosd(Mp));
   }
-
   return J;
 }
 
-// JDE → fecha civil (gregoriana)
 function jdeFecha(JDE) {
   let Z = Math.floor(JDE + 0.5);
   const F = JDE + 0.5 - Z;
   let A;
-  if (Z < 2299161) {
-    A = Z;
-  } else {
+  if (Z < 2299161) { A = Z; } else {
     const al = Math.floor((Z - 1867216.25) / 36524.25);
     A = Z + 1 + al - Math.floor(al / 4);
   }
@@ -276,20 +214,17 @@ function jdeFecha(JDE) {
   const C = Math.floor((B - 122.1) / 365.25);
   const D = Math.floor(365.25 * C);
   const E = Math.floor((B - D) / 30.6001);
-
   const diaFrac = B - D - Math.floor(30.6001 * E) + F;
-  const mes     = E < 14 ? E - 1 : E - 13;
-  const anio    = mes > 2 ? C - 4716 : C - 4715;
-  const dia     = Math.floor(diaFrac);
-  const frac    = diaFrac - dia;
-  const h       = Math.floor(frac * 24);
-  const min     = Math.floor((frac * 24 - h) * 60);
-  const seg     = Math.round(((frac * 24 - h) * 60 - min) * 60);
-
+  const mes = E < 14 ? E - 1 : E - 13;
+  const anio = mes > 2 ? C - 4716 : C - 4715;
+  const dia = Math.floor(diaFrac);
+  const frac = diaFrac - dia;
+  const h = Math.floor(frac * 24);
+  const min = Math.floor((frac * 24 - h) * 60);
+  const seg = Math.round(((frac * 24 - h) * 60 - min) * 60);
   return { anio, mes, dia, h, min, seg, JDE };
 }
 
-// Fecha → JDE (para día entero)
 function fechaJDE(anio, mes, dia) {
   let Y = anio, M = mes;
   if (M <= 2) { Y--; M += 12; }
@@ -298,7 +233,6 @@ function fechaJDE(anio, mes, dia) {
   return Math.floor(365.25 * (Y + 4716)) + Math.floor(30.6001 * (M + 1)) + dia + B - 1524.5;
 }
 
-// Buscar todas las fases en un mes
 function fasesDelMes(anio, mes) {
   const k0 = Math.round((anio - 1900 + (mes - 0.5) / 12) * 12.3685);
   const res = [];
@@ -307,29 +241,18 @@ function fasesDelMes(anio, mes) {
       const k = k0 + dk + f * 0.25;
       const J = calcJDE(k);
       const d = jdeFecha(J);
-      if (d.anio === anio && d.mes === mes) {
-        res.push({ tipo: f, ...d });
-      }
+      if (d.anio === anio && d.mes === mes) { res.push({ tipo: f, ...d }); }
     }
   }
   return res.sort((a, b) => a.JDE - b.JDE);
 }
 
-// Iluminación a partir de JDE actual
 function iluminacion(jdeActual) {
-  // Buscar k aproximado
   const kAprox = (jdeActual - 2415020.759) / 29.53058868;
   const kNL = Math.round(kAprox);
   const jdeNL = calcJDE(kNL);
-  const jdeNLSig = calcJDE(kNL + 1);
-  
-  let jdeRef, jdeSig;
-  if (jdeActual >= jdeNL) {
-    jdeRef = jdeNL; jdeSig = jdeNLSig;
-  } else {
-    jdeRef = calcJDE(kNL - 1); jdeSig = jdeNL;
-  }
-  
+  let jdeRef;
+  if (jdeActual >= jdeNL) { jdeRef = jdeNL; } else { jdeRef = calcJDE(kNL - 1); }
   const p = 29.53058868;
   const diasDesde = jdeActual - jdeRef;
   const frac = diasDesde / p;
@@ -339,7 +262,6 @@ function iluminacion(jdeActual) {
   return { ilum, creciente, diasDesde };
 }
 
-// ΔT aproximado (TT - UTC) en días
 function deltaT(anio) {
   const t = anio - 2000;
   return (62.92 + 0.32217 * t + 0.005589 * t * t) / 86400;
@@ -353,8 +275,6 @@ function dibujaLuna(canvas, ilum, creciente) {
   const w = canvas.width, h = canvas.height;
   ctx.clearRect(0, 0, w, h);
   const cx = w / 2, cy = h / 2, r = Math.min(w, h) / 2 - 1.5;
-
-  // 1. Efecto de resplandor (Glow)
   const grd = ctx.createRadialGradient(cx, cy, r * 0.6, cx, cy, r * 1.5);
   grd.addColorStop(0, 'rgba(201,168,76,.18)');
   grd.addColorStop(1, 'rgba(0,0,0,0)');
@@ -362,32 +282,22 @@ function dibujaLuna(canvas, ilum, creciente) {
   ctx.arc(cx, cy, r * 1.5, 0, Math.PI * 2);
   ctx.fillStyle = grd;
   ctx.fill();
-
   ctx.save();
   ctx.beginPath();
   ctx.arc(cx, cy, r, 0, Math.PI * 2);
   ctx.clip();
-
-  // 2. Fondo oscuro (Cuerpo de la Luna)
   ctx.fillStyle = '#090c1a';
   ctx.fillRect(0, 0, w, h);
-
-  // 3. Dibujo de la luz (Solo si la iluminación es mayor que 0)
   if (ilum > 0) {
     ctx.beginPath();
     ctx.fillStyle = '#e5d098';
-    
     if (ilum >= 0.98) {
-      // LUNA LLENA: Círculo completo
       ctx.arc(cx, cy, r, 0, Math.PI * 2);
       ctx.fill();
     } else {
-      // OTRAS FASES: Medio círculo base
       if (creciente) ctx.arc(cx, cy, r, -Math.PI / 2, Math.PI / 2, false);
       else ctx.arc(cx, cy, r, -Math.PI / 2, Math.PI / 2, true);
       ctx.fill();
-
-      // Elipse para ajustar a Creciente o Gibosa
       const stretch = Math.abs(1 - 2 * ilum);
       ctx.save();
       ctx.translate(cx, cy);
@@ -399,8 +309,6 @@ function dibujaLuna(canvas, ilum, creciente) {
       ctx.restore();
     }
   }
-
-  // 4. Textura (Cráteres) - Solo se ve sobre la parte iluminada
   ctx.globalAlpha = 0.07;
   [[.3, .3, .12], [.6, .5, .08], [.25, .65, .06], [.7, .3, .05]].forEach(([fx, fy, fr]) => {
     ctx.beginPath();
@@ -408,10 +316,7 @@ function dibujaLuna(canvas, ilum, creciente) {
     ctx.fillStyle = '#4a3a10';
     ctx.fill();
   });
-  
   ctx.restore();
-
-  // 5. Borde final
   ctx.beginPath();
   ctx.arc(cx, cy, r, 0, Math.PI * 2);
   ctx.strokeStyle = 'rgba(180,160,80,.25)';
@@ -420,15 +325,12 @@ function dibujaLuna(canvas, ilum, creciente) {
 }
 
 // =====================================================
-// NOMBRES DE FASES Y UTILIDADES
+// NOMBRES Y UTILIDADES
 // =====================================================
 const NOMBRES = ['Luna Nueva', 'Cuarto Creciente', 'Luna Llena', 'Cuarto Menguante'];
-const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
-               'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-
+const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 function pad2(n) { return String(n).padStart(2, '0'); }
 function horaStr(h, m, s) { return `${pad2(h)}:${pad2(m)}:${pad2(s)} UTC`; }
-
 function fechaStr(d) {
   const dias = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
   const jde = fechaJDE(d.anio, d.mes, d.dia);
@@ -436,26 +338,23 @@ function fechaStr(d) {
   return `${dias[dow]}, ${d.dia} de ${MESES[d.mes - 1]} de ${d.anio}`;
 }
 
-// =====================================================
-// ESTADO Y RENDER
-// =====================================================
 const hoy = new Date();
 let mesVista = { anio: hoy.getUTCFullYear(), mes: hoy.getUTCMonth() + 1 };
 
-function jdeAhora() {
-  const y = hoy.getUTCFullYear(), m = hoy.getUTCMonth() + 1;
-  const d = hoy.getUTCDate() + (hoy.getUTCHours() + hoy.getUTCMinutes() / 60 + hoy.getUTCSeconds() / 3600) / 24;
-  return fechaJDE(y, m, d);
-}
-
-function renderLunaActual() {
-  const jde = jdeAhora() + deltaT(hoy.getUTCFullYear());
+// =====================================================
+// INCRUSTACIÓN 1: RENDER DINÁMICO LUNA ACTUAL
+// =====================================================
+function renderLunaActual(fechaRef = new Date()) {
+  const y = fechaRef.getUTCFullYear();
+  const m = fechaRef.getUTCMonth() + 1;
+  const dFrac = fechaRef.getUTCDate() + (fechaRef.getUTCHours() + fechaRef.getUTCMinutes() / 60) / 24;
+  
+  const jde = fechaJDE(y, m, dFrac) + deltaT(y);
   const { ilum, creciente, diasDesde } = iluminacion(jde);
 
   const cv = document.getElementById('cvActual');
   dibujaLuna(cv, ilum, creciente);
 
-  // Nombre de fase aproximado
   let nombre;
   const fa = diasDesde / 29.53058868;
   if      (fa < 0.035 || fa > 0.965) nombre = 'Luna Nueva';
@@ -468,76 +367,61 @@ function renderLunaActual() {
   else                 nombre = 'Creciente Menguante';
 
   document.getElementById('nombreFase').textContent = nombre;
-  document.getElementById('fechaHora').textContent =
-    `${pad2(hoy.getUTCDate())} ${MESES[hoy.getUTCMonth()]} ${hoy.getUTCFullYear()} · ` +
-    `${pad2(hoy.getUTCHours())}:${pad2(hoy.getUTCMinutes())}:${pad2(hoy.getUTCSeconds())} UTC`;
-  document.getElementById('edadLuna').textContent =
-    `Edad: ${diasDesde.toFixed(2)} días desde luna nueva`;
+  document.getElementById('fechaHora').textContent = 
+    `${pad2(fechaRef.getUTCDate())} ${MESES[fechaRef.getUTCMonth()]} ${y} · ${pad2(fechaRef.getUTCHours())}:${pad2(fechaRef.getUTCMinutes())} UTC`;
+  document.getElementById('edadLuna').textContent = `Edad: ${diasDesde.toFixed(2)} días`;
   document.getElementById('pctIlum').textContent = `${(ilum * 100).toFixed(1)} %`;
 }
 
 function renderCalendario() {
   const { anio, mes } = mesVista;
   document.getElementById('titMes').textContent = `${MESES[mes - 1]} ${anio}`;
-
   const fases = fasesDelMes(anio, mes);
-  // Mapa día → fase
   const mapa = {};
-  fases.forEach(f => {
-    if (!mapa[f.dia]) mapa[f.dia] = [];
-    mapa[f.dia].push(f);
-  });
-
-  // Primer día del mes (lunes=0)
+  fases.forEach(f => { if (!mapa[f.dia]) mapa[f.dia] = []; mapa[f.dia].push(f); });
   const primerJde = fechaJDE(anio, mes, 1);
-  const primerDow = ((Math.floor(primerJde + 1.5) % 7) + 7) % 7; // 0=dom
-  const offset = primerDow === 0 ? 6 : primerDow - 1; // lunes primero
+  const primerDow = ((Math.floor(primerJde + 1.5) % 7) + 7) % 7;
+  const offset = primerDow === 0 ? 6 : primerDow - 1;
   const diasEnMes = new Date(anio, mes, 0).getDate();
-
   const hoyD = hoy.getUTCDate(), hoyM = hoy.getUTCMonth() + 1, hoyA = hoy.getUTCFullYear();
   const esHoy = (d) => d === hoyD && mes === hoyM && anio === hoyA;
-
   const grid = document.getElementById('gridDias');
   grid.innerHTML = '';
 
-  // Celdas vacías iniciales
   for (let i = 0; i < offset; i++) {
-    const c = document.createElement('div');
-    c.className = 'dia vacio';
-    grid.appendChild(c);
+    const c = document.createElement('div'); c.className = 'dia vacio'; grid.appendChild(c);
   }
 
   for (let d = 1; d <= diasEnMes; d++) {
     const cel = document.createElement('div');
     const hasFase = mapa[d] && mapa[d].length > 0;
     cel.className = 'dia' + (hasFase ? ' con-fase' : '') + (esHoy(d) ? ' hoy' : '');
-
-    const num = document.createElement('div');
-    num.className = 'num';
-    num.textContent = d;
+    const num = document.createElement('div'); num.className = 'num'; num.textContent = d;
     cel.appendChild(num);
 
     if (hasFase) {
       mapa[d].forEach(fase => {
-        const wrap = document.createElement('div');
-        wrap.className = 'icono-fase';
-
-        const cv = document.createElement('canvas');
-        cv.width = 34; cv.height = 34;
-        // Iluminación simbólica por tipo
-        const ilums = [0, 0.5, 1, 0.5];
-        const crecs  = [true, true, true, false];
+        const wrap = document.createElement('div'); wrap.className = 'icono-fase';
+        const cv = document.createElement('canvas'); cv.width = 34; cv.height = 34;
+        const ilums = [0, 0.5, 1, 0.5]; const crecs = [true, true, true, false];
         dibujaLuna(cv, ilums[fase.tipo], crecs[fase.tipo]);
         wrap.appendChild(cv);
-
-        const hr = document.createElement('div');
-        hr.className = 'hora';
-        hr.textContent = `${pad2(fase.h)}:${pad2(fase.min)}:${pad2(fase.seg)}`;
+        const hr = document.createElement('div'); hr.className = 'hora'; hr.textContent = `${pad2(fase.h)}:${pad2(fase.min)}`;
         wrap.appendChild(hr);
-
         cel.appendChild(wrap);
       });
     }
+
+    // =====================================================
+    // INCRUSTACIÓN 2: EVENTO CLICK EN CADA DÍA
+    // =====================================================
+    cel.style.cursor = 'pointer';
+    cel.onclick = () => {
+      const fechaClick = new Date(Date.UTC(anio, mes - 1, d, 23, 0, 0));
+      renderLunaActual(fechaClick);
+      document.querySelectorAll('.dia').forEach(el => el.style.boxShadow = 'none');
+      cel.style.boxShadow = 'inset 0 0 0 1px var(--gold)';
+    };
 
     grid.appendChild(cel);
   }
@@ -548,49 +432,27 @@ function renderTablaFases() {
   const fases = fasesDelMes(anio, mes);
   const lista = document.getElementById('listaFases');
   lista.innerHTML = '';
-
-  if (!fases.length) {
-    lista.innerHTML = '<div style="padding:14px 18px;color:var(--dim);font-style:italic">Sin lunaciones este mes</div>';
-    return;
-  }
-
   fases.forEach(f => {
-    const fila = document.createElement('div');
-    fila.className = 'fila-fase';
-
-    const cv = document.createElement('canvas');
-    cv.width = 40; cv.height = 40;
-    const ilums = [0, 0.5, 1, 0.5];
-    const crecs  = [true, true, true, false];
+    const fila = document.createElement('div'); fila.className = 'fila-fase';
+    const cv = document.createElement('canvas'); cv.width = 40; cv.height = 40;
+    const ilums = [0, 0.5, 1, 0.5]; const crecs = [true, true, true, false];
     dibujaLuna(cv, ilums[f.tipo], crecs[f.tipo]);
     fila.appendChild(cv);
-
-    const info = document.createElement('div');
-    info.className = 'info';
-    info.innerHTML = `
-      <div class="n">${NOMBRES[f.tipo]}</div>
-      <div class="f">${fechaStr(f)}</div>
-      <div class="t">${horaStr(f.h, f.min, f.seg)}</div>
-    `;
+    const info = document.createElement('div'); info.className = 'info';
+    info.innerHTML = `<div class="n">${NOMBRES[f.tipo]}</div><div class="f">${fechaStr(f)}</div><div class="t">${horaStr(f.h, f.min, f.seg)}</div>`;
     fila.appendChild(info);
     lista.appendChild(fila);
   });
 }
 
-function render() {
-  renderLunaActual();
-  renderCalendario();
-  renderTablaFases();
-}
+function render() { renderLunaActual(); renderCalendario(); renderTablaFases(); }
 
 document.getElementById('btnPrev').addEventListener('click', () => {
-  mesVista.mes--;
-  if (mesVista.mes < 1) { mesVista.mes = 12; mesVista.anio--; }
+  mesVista.mes--; if (mesVista.mes < 1) { mesVista.mes = 12; mesVista.anio--; }
   renderCalendario(); renderTablaFases();
 });
 document.getElementById('btnNext').addEventListener('click', () => {
-  mesVista.mes++;
-  if (mesVista.mes > 12) { mesVista.mes = 1; mesVista.anio++; }
+  mesVista.mes++; if (mesVista.mes > 12) { mesVista.mes = 1; mesVista.anio++; }
   renderCalendario(); renderTablaFases();
 });
 
